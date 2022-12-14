@@ -292,7 +292,7 @@ With respect to the periodic task model, define each of the following terms, and
 
 ### Question 19
 
-![Question 19 Diagram](Q19-Diagram.PNG)
+![Question 19 Diagram](Diagrams/Q19-Diagram.PNG)
 
 For the FSM given, write a C routine that will implement the FSM using each specified strategy, and identify 1 advantage and 1 disadvantage inherent in the strategy:
 
@@ -355,7 +355,7 @@ SET C - A system contains the following periodic tasks: T1 = (4,1), T2 = (5,2,7)
 
 ### Question 23
 
-![Figure A](q23-Figure.PNG)
+![Figure A](Diagrams/q23-Figure.PNG)
 
 A set of jobs shown in Figure 7, each job is given as Ji with parameters (ri, di] where ri is the release time and di is the absolute deadline. The jobs are pre-emptable and have identical execution times.
 
