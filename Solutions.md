@@ -296,9 +296,12 @@ The fluid flow through the oil pipe can vary from -20 to +20 L/min, and the tran
 The ADC uses straight binary, so a voltage of 0V will be converted to a digital output of 0, and a voltage of +5V will be converted to the largest digital output that the 12-bit ADC is capable of producing.
 
 Since the ADC uses fixed point representation to store the digital output, the resolution of the measurement will be limited by the number of bits used in the representation. In this case, since the ADC is 12-bit, the resolution of the measurement will be limited to
+
 $$ \frac{1}{2^{12}} = \frac{1}{4096} $$
+
 of the full scale range, or (0.0012 L/min {AI answer})
- $$\frac{1}{4096} \times 20 = 0.0049 L/min$$
+
+$$\frac{1}{4096} \times 20 = 0.0049 L/min$$
 
 This means that the smallest change in fluid flow that can be detected by the system will be 0.0049 L/min (0.0012 L/min).
 
@@ -309,7 +312,9 @@ If the fluid flow through the oil pipe is -10 L/min, the transducer and analog c
 $$ \frac{-10 L/min}{20 L/min} \times 5V = -2.5V $$
 
 Since the ADC uses straight binary, this voltage will be converted to a digital output of:
+
 $$ \frac{-0.25V}{5V} \times 2^{12} = -204.8  $$
+
 Since the ADC uses fixed point representation, the digital output will be stored as a 12-bit binary number with a format of
 
 ```text
