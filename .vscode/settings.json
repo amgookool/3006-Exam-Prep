@@ -2,6 +2,8 @@
     "cSpell.words": [
         "ARINC",
         "AUTOSAR",
+        "BLDC",
+        "Bootloader",
         "datasheet",
         "DATAWR",
         "ECNG",
@@ -13,11 +15,14 @@
         "GFLOPS",
         "gotoxy",
         "GPIO",
+        "hdler",
         "Hyperperiod",
+        "ifndef",
         "ITRON",
         "Koopman",
         "lasered",
         "linearization",
+        "LSTS",
         "microcontroller",
         "MISRA",
         "MOSI",
@@ -29,7 +34,15 @@
         "SCLK",
         "SINAD",
         "TEMPOUT",
+        "Tensa",
+        "Tensilica",
+        "timeframe",
+        "TPMs",
         "uniprocessor",
         "wirelessly"
-    ]
+    ],
+    "files.associations": {
+        "stdio.h": "c"
+    },
+    "C_Cpp.errorSquiggles": "disabled"
 }

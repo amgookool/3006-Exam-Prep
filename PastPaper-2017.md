@@ -136,12 +136,144 @@ The "lcd_gotoxy()" function is then used to move the cursor to the top-left posi
 
 ## Question 3
 
+Task 1 - Hydraulic Pump Control is responsible for maintaining the pressure in the hydraulic system at a desired level by adjusting the hydraulic pump command. This task reads the pressure sensor value at J11, calculates the new pressure command at J12, and outputs the new command at J13. It runs at a 10ms interval.
+
+Task 2 - Brake Pedal Update reads the status of the left and right brake pedals and controls the left and right hydraulic valves accordingly. It runs at a 10ms interval with a phase delay of 5ms. At J21, it reads the left brake pedal and outputs the value to the left valve. At J22, it reads the right brake pedal and outputs the value to the right valve.
+
+Task 3 - Parking Brake is responsible for engaging and disengaging the parking brake. It runs at a 50ms interval. At J31, it reads the left and right brake pedals. If both pedals are fully depressed at J32, it locks the parking handle. If both pedals are not depressed at J33, it releases the parking handle. If the parking handle is up and locked at J34, it turns the parking valve on. If the parking handle is released at J35, it turns the parking valve off.
+
+Task 4 - Brake Temperature Monitor reads the temperature sensors, stores the maximum temperature value, and controls the BRAKE TEMP light. It runs at a 50ms interval. At J41, it reads the temperature sensors and stores the maximum value. At J42, it turns on the BRAKE TEMP light if the temperature is greater than 5, and turns it off otherwise.
+
 ### Q3 Part A
+
+Here is a cyclic schedule for the execution of the jobs in the embedded system scenario, with a minor cycle of 10ms:
+
+Minor Cycle 1:
+
+J11 (Hydraulic Pump Control - Pressure Sensor)
+J21 (Brake Pedal Update - Left Brake Pedal)
+J22 (Brake Pedal Update - Right Brake Pedal)
+Minor Cycle 2:
+
+J12 (Hydraulic Pump Control - Calculate new Pressure Command)
+Minor Cycle 3:
+
+J13 (Hydraulic Pump Control - Output new Pressure Command)
+Minor Cycle 4:
+
+J31 (Parking Brake - Read Left Brake Pedal and Right Brake Pedal)
+Minor Cycle 5:
+
+J32 (Parking Brake - Lock Parking Handle)
+Minor Cycle 6:
+
+J33 (Parking Brake - Release Parking Handle)
+Minor Cycle 7:
+
+J34 (Parking Brake - Turn Parking Valve On)
+Minor Cycle 8:
+
+J35 (Parking Brake - Turn Parking Valve Off)
+Minor Cycle 9:
+
+J41 (Brake Temperature Monitor - Read Temperature Sensors)
+Minor Cycle 10:
+
+J42 (Brake Temperature Monitor - Control BRAKE TEMP Light)
+This schedule can be represented graphically as follows:
+
+Minor Cycle 1:
+
+J11 J21 J22
+
+Minor Cycle 2:
+
+J12
+
+Minor Cycle 3:
+
+J13
+
+Minor Cycle 4:
+
+J31
+
+Minor Cycle 5:
+
+J32
+
+Minor Cycle 6:
+
+J33
+
+Minor Cycle 7:
+
+J34
+
+Minor Cycle 8:
+
+J35
+
+Minor Cycle 9:
+
+J41
+
+Minor Cycle 10:
+
+J42
+
+This schedule ensures that all tasks are completed within the required response time and that the minor cycle of 10ms is maintained. The tasks are executed in a cyclic manner, with each task being executed in a specific minor cycle.
 
 ### Q3 Part B
 
+Here is a task timeline for the execution of the jobs in the embedded system scenario, assuming that they are scheduled using a pre-emptive priority-based scheduler, with a 2ms tick:
+
+![Task Timeline](Diagrams/PP2017-Q3-PartB.png)
+
+This task timeline demonstrates how the tasks are executed using a pre-emptive priority-based scheduler. Task 1 has the highest priority, followed by Task 2, then Task 3, and then Task 4 has the lowest priority. The tasks are executed in a cyclic manner, with each task being executed in a specific time slot within the minor cycle. Task 1 is executed at every 2ms tick, while Task 2 is executed every 4ms tick. Task 3 is executed every 8ms tick, and Task 4 is executed every 16ms tick. The tasks are pre-empted if a higher priority task becomes available, as can be seen in the timeline. For example, at time 18, Task 4 is pre-empted by Task 1, which has a higher priority.
+
 ### Q3 Part C
+
+There are several criteria that can be used to compare the performance of the cyclic executive and the pre-emptive priority-based scheduler in the embedded system scenario:
+
+Response time: The response time refers to the time it takes for a task to complete its execution. In the cyclic executive, all tasks are executed in a fixed order, at specific time intervals within the minor cycle. This means that the response time for each task is known and deterministic. In the pre-emptive priority-based scheduler, the response time for a task can vary depending on the priority of the task and the availability of other tasks with higher priority.
+
+Utilization: Utilization refers to the percentage of time that the system is busy executing tasks. In the cyclic executive, all tasks are executed in a fixed order, at specific time intervals within the minor cycle. This means that the utilization of the system is known and deterministic. In the pre-emptive priority-based scheduler, the utilization of the system can vary depending on the priority of the tasks and the availability of other tasks with higher priority.
+
+Based on these criteria, it may be preferable to implement the cyclic executive, as it offers deterministic response times and utilization. However, if the system requires high responsiveness and the ability to handle tasks with varying priority levels, the pre-emptive priority-based scheduler may be a better choice. In this case, adjustments may need to be made to the priority levels of the tasks to ensure that the system performs optimally.
 
 ### Q3 Part D
 
+Rate Monotonic Scheduling (RMS) is a fixed priority scheduling algorithm that assigns priorities to tasks based on their periodic execution rates. The task with the highest rate is assigned the highest priority, and tasks with lower rates are assigned lower priorities. In RMS, the priority of a task does not change during its execution.
+
+Least Slack Time Scheduling (LSTS) is a dynamic priority scheduling algorithm that assigns priorities to tasks based on their remaining execution time. The task with the least remaining execution time is assigned the highest priority, and tasks with more remaining execution time are assigned lower priorities. In LSTS, the priority of a task can change during its execution.
+
+Based on the embedded system scenario, the relative priorities of the 4 tasks can be determined as follows:
+
+Rate Monotonic Scheduling:
+
+- Task 1 (Hydraulic Pump Control) - Priority 3
+- Task 2 (Brake Pedal Update) - Priority 2
+- Task 3 (Parking Brake) - Priority 1
+- Task 4 (Brake Temperature Monitor) - Priority 4
+
+Least Slack Time Scheduling:
+
+- Task 1 (Hydraulic Pump Control) - Priority varies depending on remaining execution time
+- Task 2 (Brake Pedal Update) - Priority varies depending on remaining execution time
+- Task 3 (Parking Brake) - Priority varies depending on remaining execution time
+- Task 4 (Brake Temperature Monitor) - Priority varies depending on remaining execution time
+
+In RMS, the priorities of the tasks are fixed and do not change during their execution. In LSTS, the priorities of the tasks can change based on their remaining execution time. RMS is suitable for systems with tasks that have fixed and known execution rates, while LSTS is suitable for systems with tasks that have varying execution times and deadlines.
+
 ### Q3 Part E
+
+It is feasible to implement the system described using a foreground-background approach, where certain tasks are executed in the background while others are executed in the foreground.
+
+In this implementation, Tasks 3 and 4 would run in the background, while Task 1 would be called in the interrupt handler for the timer and Task 2 would be called in the interrupt handler for the interrupt-on-change signal from the brake pedals.
+
+One potential benefit of this implementation is that it allows the system to respond quickly to changes in the brake pedal position and to perform the tasks related to the hydraulic pump and brake temperature monitoring in the background, without interrupting the foreground tasks. This can help to ensure that the system remains responsive and that the brake pedals are able to function correctly.
+
+However, it is important to carefully consider the real-time requirements of the system and ensure that the foreground and background tasks are able to complete their respective tasks within the required time constraints. If the system is not able to meet these real-time requirements, it may result in unsafe or unreliable behavior.
+
+To detect and address any potential issues with this implementation, it may be necessary to use various resources and procedures, such as performance monitoring tools, debuggers, and code analysis tools, to identify and resolve any problems that may arise. Additionally, it may be necessary to carefully test the system to ensure that it is able to meet the required real-time constraints and that it functions correctly under a variety of different conditions.
