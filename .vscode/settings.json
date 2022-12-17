@@ -38,7 +38,9 @@
         "Tensilica",
         "timeframe",
         "TPMs",
+        "UART",
         "uniprocessor",
+        "WCET",
         "wirelessly"
     ],
     "files.associations": {

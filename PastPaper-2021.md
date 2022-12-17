@@ -215,6 +215,12 @@ Overall, the decision to use sleep functions or not in an ESP8266-based critical
 
 ## Question 3
 
+The four tasks in this system are responsible for different functions. Task A is responsible for updating the LCD display with the number of items in circulation on the conveyor. Task B is responsible for routing items when a station button is pressed. Task C is an interrupt-driven task that signals Task D when an item is detected. Task D is responsible for transferring items off the conveyor.
+
+The binary semaphore in this system is likely used to synchronize access to shared resources, such as the I2C bus or the global data structure. The global data structure is likely used to store information about the state of the system, such as the number of items in circulation and the destination stations for each item. The message queue is likely used to communicate information between tasks, such as the RFID code of an item or the destination station for an item.
+
+The kernel of the system is configured to allow interrupt events to preempt the running task, perform pre-emptive priority-based scheduling, prevent pre-emption of tasks accessing the I2C bus, and incur negligible overhead at system reset and scheduler task switch. This configuration ensures that the system can respond quickly to events and minimize interference between tasks while still allowing tasks to access shared resources and communicate with each other.
+
 ### Q3 Part A
 
 ### Q3 Part B
