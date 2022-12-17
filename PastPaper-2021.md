@@ -215,18 +215,130 @@ Overall, the decision to use sleep functions or not in an ESP8266-based critical
 
 ## Question 3
 
-The four tasks in this system are responsible for different functions. Task A is responsible for updating the LCD display with the number of items in circulation on the conveyor. Task B is responsible for routing items when a station button is pressed. Task C is an interrupt-driven task that signals Task D when an item is detected. Task D is responsible for transferring items off the conveyor.
+It sounds like the processing facility has a system in place for routing items through various stations using a conveyor belt and RFID technology. The system is controlled by an ESP-01s controller, which is connected to various input and output devices such as RFID tag readers, sensors, push buttons, and relays via an I2C bus. The controller is configured to receive messages from the RFID tag readers at 2400 baud, and to respond to rising edge interrupt signals from a GPIO expander.
 
-The binary semaphore in this system is likely used to synchronize access to shared resources, such as the I2C bus or the global data structure. The global data structure is likely used to store information about the state of the system, such as the number of items in circulation and the destination stations for each item. The message queue is likely used to communicate information between tasks, such as the RFID code of an item or the destination station for an item.
+There are 16 distinct stations along the conveyor, each with its own RFID tag reader, sensor, push button, and relay. Items arriving from outside the facility are processed at station 0 before being placed on the conveyor. When an item is detected in front of a station, its RFID code is scanned and, if necessary, the item is transferred off the conveyor to the station by activating the associated relay. Once the item has been processed at the station, it is placed back on the conveyor and routed to its next destination.
 
-The kernel of the system is configured to allow interrupt events to preempt the running task, perform pre-emptive priority-based scheduling, prevent pre-emption of tasks accessing the I2C bus, and incur negligible overhead at system reset and scheduler task switch. This configuration ensures that the system can respond quickly to events and minimize interference between tasks while still allowing tasks to access shared resources and communicate with each other.
+The system is implemented using four tasks, a binary semaphore, a global data structure, and a message queue. Task A is responsible for updating the LCD display, Task B is responsible for routing items when a station button is pressed, Task C is an interrupt-driven task that signals Task D when an item is detected, and Task D is responsible for transferring items off the conveyor.
+
+It is important to note that the kernel is configured to allow interrupt events to preempt the running task, perform preemptive priority-based scheduling, prevent pre-emption of tasks accessing the I2C bus, and incur minimal overhead at system reset and scheduler task switch. This helps to ensure that the system runs smoothly and efficiently.
+
+Task A is a periodic task that is responsible for updating the LCD display with the number of items in circulation on the conveyor. It does this by retrieving messages from a queue and updating a static variable called "count" based on the messages it receives. If a message comes from Task D, count is decremented, and if a message comes from Task B, count is incremented. Task A then displays the value of count on the LCD display via I2C.
+
+Task B is a periodic task that is responsible for routing items when a station button is pressed. It does this by reading the 16-bit pushbutton GPIO expander status into a variable called "I", and then activating the RFID reader for any station whose bit in "I" is set. It retrieves the RFID code for the item and checks if it is a valid parcel code. If it is, it retrieves the RFID code for the destination station and updates the route in a global data structure called "G" for the parcel. It also updates the status in "G" for the station to "AVAILABLE" and places a message on the queue for Task A.
+
+Task C is an aperiodic task that is triggered by an interrupt signal. When it is triggered, it sends a semaphore called "S" to Task D and disables interrupts.
+
+Task D is a periodic task that is responsible for transferring items off the conveyor. It does this by first clearing all bits in the 16-bit transfer relay GPIO expander. If the semaphore "S" is available, it retrieves the semaphore and then reads the 16-bit sensor GPIO expander status into a variable called "I". It enables interrupts and then activates the RFID reader for any station whose bit in "I" is clear, and whose status in "G" is "AVAILABLE". If the RFID code for the item matches the route in "G" for the parcel, it sets the bit for the station in the 16-bit transfer relay GPIO expander, updates the status in "G" for the station to "BUSY", and places a message on the queue for Task A. It then deactivates the RFID reader.
 
 ### Q3 Part A
 
+To create the precedence graph for Task B, we need to consider the execution time and dependencies of each step in the task. The precedence graph for Task B is shown below:
+
+```text
+Step:  JBa  JBb  JBc  JBd  JBe  JBf  JBg  JBh  JBi
+       2    1    101  5    100  5    11   2    1
+
+JBa -- JBb
+|       |
+JBb -- JBc
+|       |
+JBc -- JBd
+|       |
+JBd -- JBe
+|       |
+JBe -- JBf
+|       |
+JBf -- JBg
+|       |
+JBg -- JBh
+|       |
+JBh -- JBi
+```
+
+Next, we can calculate the Worst-Case Execution Time (WCET) for each task.
+
+Task A:
+
+The WCET for Task A is the sum of the execution times of all the steps in the task, plus the time it takes to retrieve a message from the queue:
+WCET(A) = 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 + 1 = 9 units
+Task B:
+
+The WCET for Task B is the sum of the execution times of all the steps in the task:
+WCET(B) = 2 + 1 + 101 + 5 + 100 + 5 + 11 + 2 + 1 = 228 units
+Task C:
+
+The WCET for Task C is the sum of the execution times of all the steps in the task:
+WCET(C) = 2 units
+Task D:
+
+The WCET for Task D is the sum of the execution times of all the steps in the task:
+WCET(D) = 1 + 1 + 2 + 1 + 1 + 5 + 10 + 7 + 1 + 1 = 30 units
+To calculate the Worst-Case System Utilization, we need to sum the WCETs of all the tasks and divide by the period of the slowest periodic task:
+
+Utilization = (9 + 228 + 2 + 30) / 5000 = 0.069
+
+This means that the system is utilizing 6.9% of its available processing time. This is a relatively low utilization, indicating that the system has sufficient capacity to handle the tasks it needs to perform. Therefore, the system is feasible as it has sufficient processing power to handle the tasks it needs to perform within the required time frame.
+
 ### Q3 Part B
+
+Here is a timeline for a single hyper-period from startup, where there are no parcels on the conveyor, no sensors are triggered, and the button on station 0 is pressed at time t=2100 units, for a single parcel to be routed to station 3, which arrives at station 3 at t=7300 units:
+
+```text
+t=0: System starts up
+t=0: Task A starts (period = 5000 units)
+t=0: Task B starts (period = 1000 units)
+t=0: Task D starts (period = 2000 units)
+
+t=500: Task A runs
+t=1000: Task B runs
+t=1500: Task A runs
+t=2000: Task A runs
+t=2100: Button on station 0 is pressed
+
+t=2500: Task A runs
+t=3000: Task B runs
+t=3500: Task A runs
+t=4000: Task A runs
+t=4500: Task A runs
+t=5000: Task A runs
+t=5500: Task A runs
+t=6000: Task A runs
+t=6500: Task A runs
+t=7000: Task A runs
+t=7100: Task B runs
+t=7300: Parcel arrives at station 3
+
+t=7500: Task A runs
+t=8000: Task B runs
+t=8500: Task A runs
+...
+```
+
+Note that the timeline above assumes that the system is configured to allow interrupt events to preempt the running task, and that the kernel is performing preemptive priority-based scheduling. This means that if an interrupt event occurs, the running task will be interrupted and the interrupt task will be run. Also, tasks with higher priority will be given more processing time than tasks with lower priority.
+
+In this case, we can see that when the button on station 0 is pressed at t=2100 units, Task B is preempted and runs. Task B activates the RFID reader for station 0, retrieves the RFID code for the parcel and the destination station, and updates the route in the global data structure. It then places a message on the queue for Task A and deactivates the RFID reader. When the parcel arrives at station 3 at t=7300 units, it is detected by the sensor at that station, which triggers an interrupt and causes Task C to run. Task C sends a semaphore to Task D, which is then able to run and transfer the parcel off the conveyor. Task A updates the LCD display to reflect the change in the number of items in circulation on the conveyor.
 
 ### Q3 Part C
 
+There are several performance criteria that can be used to evaluate the different priority assignment schemes:
+
+Response time: This refers to the amount of time it takes for a task to complete its execution. In a real-time system, it is important to have a predictable and short response time to ensure that tasks are completed within the required time frame.
+
+Throughput: This refers to the number of tasks that can be completed within a given time period. A high throughput is desirable to ensure that the system is able to handle a large number of tasks efficiently.
+
+Utilization: This refers to the percentage of processing time that is used by the tasks. A high utilization can lead to resource contention and reduced system performance.
+
+Based on these criteria, I would recommend using rate-monotonic static scheduling for the system. This is because rate-monotonic scheduling assigns priorities based on the period of the tasks, with shorter period tasks having higher priority. This ensures that tasks with shorter periods have a shorter response time and higher throughput, as they are given a higher priority and are able to complete their execution more quickly. Additionally, rate-monotonic scheduling has a lower utilization compared to other schemes, which helps to reduce resource contention and improve system performance.
+
+In the context of the conveyor system described, rate-monotonic scheduling would be a suitable choice as it would ensure that tasks with shorter periods (such as Task B and Task D) have a higher priority and are able to complete their execution more quickly. This would help to ensure that parcels are routed and transferred efficiently, and that the LCD display is updated in a timely manner.
+
 ### Q3 Part D
 
-### Q3 Part E
+There are two operational issues and/or concerns with the suggested modification to the conveyor system firmware:
+
+1. Shared use of the RX pin: By using the RX pin for both the RFID tag reader function and the emergency stop function, the system may experience conflicts or unpredictable behavior if the two functions are activated at the same time. For example, if an RFID tag reader is activated while the emergency stop function is triggered, the system may not be able to properly process the RFID data or may produce unintended results.
+
+1. Activation of the emergency stop function: Since the emergency stop function is activated by an interrupt on the RX pin, it is possible that the function could be triggered by other sources of noise or interference on the pin. This could lead to false activations of the function, which could disrupt the operation of the conveyor system.
+
+To address these concerns, the firmware can be modified to include additional safeguards and checks to ensure the proper operation of the system. For example, the firmware can include a mechanism to detect and ignore RFID data when the emergency stop function is activated, or a debouncing system to prevent false activations of the function due to noise or interference. Additionally, the firmware can include a confirmation prompt or other security measures to ensure that the emergency stop function is only activated intentionally by a human operator.
