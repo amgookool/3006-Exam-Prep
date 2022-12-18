@@ -6,11 +6,11 @@
 
 The Task Control Block (TCB) is a data structure used by the µCOS-II kernel to manage and control the execution of tasks. Each task in the system has its own TCB, which contains information about the task such as its state, priority, stack pointer, and other data needed by the kernel to manage the task.
 
-The TCB plays a critical role in the task scheduling and context switching functions of the µCOS-II kernel. When a task is created, the kernel assigns it a TCB and initializes the TCB with the necessary information. When it is time for the kernel to schedule a new task to run, it uses the information in the TCBs to determine which task should be executed next.
+During task scheduling, the kernel uses the information in the TCBs to determine which task should be executed next. The kernel maintains a list of all of the tasks and their corresponding TCBs, and uses this information to determine which task should be given control of the processor.
 
-During a context switch, the kernel saves the current state of the task being switched out in its TCB, and restores the state of the task being switched in from its TCB. This allows the kernel to maintain the integrity of the tasks' execution state and ensures that each task can resume execution from where it left off.
+During a context switch, the kernel saves the context (such as the values of registers and the program counter) of the task that is currently executing, and restores the context of the task that is being scheduled to run. The kernel uses the information in the TCB, such as the stack pointer, to determine where to save and restore the task's context.
 
-In summary, the TCB is an essential component of the µCOS-II kernel, and it plays a crucial role in managing and controlling the execution of tasks in the system.
+Overall, the TCB plays a crucial role in the task scheduling and context switching functions of the μCOS-II kernel by providing the necessary information to manage the tasks and switch between them.
 
 ### Q1 Part B
 
