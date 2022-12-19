@@ -1,0 +1,7 @@
+# Miscellaneous Notes
+
+Cooperative multitasking is a type of multitasking in which each task is required to yield control periodically or when idle, allowing other tasks to execute. In a cooperative multitasking system, each task is responsible for ensuring that it does not monopolize the shared resources of the system, such as CPU time and memory. This means that each task must be designed to be well-behaved and must yield control willingly in order to allow other tasks to execute.
+
+Preemptive multitasking is a type of multitasking in which a task can be interrupted and forced to yield control to another task by the operating system. This is done using a mechanism called preemption, which allows the operating system to interrupt a task that is currently executing and switch to another task. Preemptive multitasking is more efficient than cooperative multitasking because it allows the operating system to ensure that all tasks get a fair share of the available resources, rather than relying on each task to voluntarily yield control.
+
+Priority-based multitasking is a type of multitasking in which each task is assigned a priority level, and the operating system schedules tasks based on their priority level. Higher priority tasks are given precedence over lower priority tasks, and are therefore more likely to be executed first. This allows the operating system to ensure that important tasks are given priority over less important tasks, and can help to improve the overall performance of the system
